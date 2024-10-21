@@ -6,6 +6,11 @@
 #define PORT         "3490"
 #define SERVER_FILES "./serverfiles"
 
+#ifdef DEBUG
+#else
+    #define printf(...)
+#endif 
+
 char* http_get_current_time()
 {
     time_t rawtime;
@@ -85,6 +90,77 @@ static void resp_404(int fd)
     file_free(filedata);
 }
 
+/* 
+ * HTTP utils
+ */
+int is_the_same(char *str1, char *str2) {
+    if (strcmp(str1, str2) == 0) {
+        return 1;
+    }
+    return 0;
+}
+
+/* 
+ * POST and GET handler
+ */
+int http_GET_handler() {
+    printf("get: handle GET request.\n");
+    return 0;
+}
+
+int http_POST_request() {
+    printf("post: handle POST request.\n");
+    return 0;
+}
+
+/* 
+ * Handle HTTP request and send response
+ */
+void http_handle_request(int fd)
+{
+    const int request_buffer_size = 65536; // 64K
+    char request[request_buffer_size];
+
+    // Read request
+    int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
+    if (bytes_recvd < 0) {
+        perror("recv");
+        return;
+    }
+
+    printf("recv: we received %d bytes from %d.\n", bytes_recvd, fd);
+    printf("recv: the request is:\n");
+    printf("\n%s", request);
+
+    /* 
+     * Read the first two components of the first line of the request.
+     *
+     * If GET, handle the get endpoints.
+     *      Check if it's /d20 and handle that special case.
+     *      Otherwise serve the requested file by calling get_file()
+     *
+     * If POST, handle the POST request.
+     */
+
+    char type_of_request[5];
+    char http_version[20];
+
+    sscanf(request, "%s %*s %s\r\n", type_of_request, http_version);
+    printf("recv: %s request | http %s.\n", 
+            type_of_request, http_version);
+
+    if (is_the_same("GET", type_of_request)) {
+        http_GET_handler();
+    }
+    else if (is_the_same("POST", type_of_request)) {
+        http_POST_request();
+    }
+    else {
+        perror("recv: Invalid request");
+        exit(1);
+    }
+}
+
 int main()
 {
     int new_fd;
@@ -116,7 +192,7 @@ int main()
                 s, sizeof(s));
         printf("server: got connection from %s\n", s);
 
-        resp_404(new_fd);
+        http_handle_request(new_fd);
 
         close(new_fd);
     }

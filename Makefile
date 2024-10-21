@@ -30,7 +30,7 @@ OBJ_FILE = $(patsubst $(FILE_DIR)/%.c,$(OBJ_DIR)/%.o,$(SRC_FILE))
 MAIN_OBJ = $(OBJ) $(OBJ_SOCKET) $(OBJ_MIME) $(OBJ_FILE)
 
 # Compiler flags
-CFLAGS = -I$(SOCKET_DIR) -I$(MIME_DIR) -I$(FILE_DIR)
+CFLAGS = -I$(SOCKET_DIR) -I$(MIME_DIR) -I$(FILE_DIR) -DDEBUG
 
 # Build rules
 all: $(TARGET)
